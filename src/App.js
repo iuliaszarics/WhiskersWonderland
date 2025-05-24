@@ -12,7 +12,7 @@ import axios from "axios";
 import Shelters from "./pages/Shelters.js";
 import { jwtDecode } from 'jwt-decode'; 
 import MonitoredUsers from "./pages/MonitoredUsers.js";
-import api from './api/config';
+import api from './api/config.js';
 
 function App() {
   const [searchTerm, setSearchTerm] = useState("");
