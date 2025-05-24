@@ -1,0 +1,43 @@
+services:
+  - type: web
+    name: animal-adoption-api
+    env: node
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DB_HOST
+        fromDatabase:
+          name: animal-adoption-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: animal-adoption-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: animal-adoption-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: animal-adoption-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: animal-adoption-db
+          property: password
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 24h
+      - key: FRONTEND_URL
+        value: https://your-frontend-url.vercel.app
+
+databases:
+  - name: animal-adoption-db
+    databaseName: animal_adoption
+    user: animal_adoption_user
+    plan: free 
