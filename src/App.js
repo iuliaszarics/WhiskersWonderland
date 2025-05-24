@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Route, Routes, Link, Navigate, useLocation } from "react-router-dom";
 import Home from "./pages/Home.js";
 import FilteredAnimals from "./pages/FilteredAnimals.js";
@@ -12,10 +12,13 @@ import axios from "axios";
 import Shelters from "./pages/Shelters.js";
 import { jwtDecode } from 'jwt-decode'; 
 import MonitoredUsers from "./pages/MonitoredUsers.js";
+import api from './api/config';
 
 function App() {
   const [searchTerm, setSearchTerm] = useState("");
   const [animals, setAnimals] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
 
@@ -35,10 +38,15 @@ function App() {
 
   const fetchAnimals = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/animals");
+      setLoading(true);
+      const response = await api.get("/animals");
       setAnimals(response.data);
+      setError(null);
     } catch (error) {
       console.error("Error fetching animals:", error);
+      setError("Failed to fetch animals. Please try again later.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -55,7 +63,6 @@ function App() {
     setUser(null);
   };
 
- 
   const LayoutWrapper = ({ children }) => {
     const location = useLocation();
     
