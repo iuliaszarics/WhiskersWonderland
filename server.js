@@ -5,7 +5,6 @@ import AnimalRouter from './src/routes/animals.js';
 import ShelterRouter from './src/routes/shelters.js';
 import authRoutes from './src/routes/authRoutes.js';
 import adminRoutes from './src/routes/adminRoutes.js';
-import { authenticateToken } from './src/middleware/auth.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -32,11 +31,9 @@ app.use((req, res, next) => {
 // Public routes
 app.use('/api/auth', authRoutes);
 
-// Protected routes
-app.use('/api/animals', authenticateToken, AnimalRouter);
-app.use('/api/shelters', authenticateToken, ShelterRouter);
-
-// Admin routes
+// Routes without authentication
+app.use('/api/animals', AnimalRouter);
+app.use('/api/shelters', ShelterRouter);
 app.use('/api/admin', adminRoutes);
 
 // Health check endpoint
