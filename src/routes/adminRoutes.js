@@ -7,22 +7,31 @@ import sequelize from '../db.js';
 import jwt from 'jsonwebtoken';
 
 const router = express.Router();
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 const adminMiddleware = async (req, res, next) => {
   try {
+    console.log('Admin middleware - Headers:', req.headers);
     const token = req.headers.authorization?.split(' ')[1];
+    console.log('Token in admin middleware:', token ? 'exists' : 'missing');
+    
     if (!token) return res.status(401).json({ error: 'No token provided' });
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+    const decoded = jwt.verify(token, JWT_SECRET);
+    console.log('Decoded token:', decoded);
+    
     const user = await User.findByPk(decoded.id);
+    console.log('User found:', user ? 'yes' : 'no');
     
     if (!user || user.role !== 'admin') {
+      console.log('User is not admin');
       return res.status(403).json({ error: 'Admin access required' });
     }
 
     req.user = user;
     next();
   } catch (error) {
+    console.error('Admin middleware error:', error);
     res.status(401).json({ error: 'Invalid token' });
   }
 };
@@ -147,8 +156,6 @@ router.delete('/animals/:id', async (req, res) => {
       entityId: animal.id,
       details: `Admin deleted animal ${animal.name}`
     });
-
-    res.json({ message: 'Animal deleted successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

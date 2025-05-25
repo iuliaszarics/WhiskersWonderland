@@ -4,6 +4,8 @@ import sequelize from './src/db.js';
 import AnimalRouter from './src/routes/animals.js';
 import ShelterRouter from './src/routes/shelters.js';
 import authRoutes from './src/routes/authRoutes.js';
+import adminRoutes from './src/routes/adminRoutes.js';
+import { authenticateToken } from './src/middleware/auth.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -11,11 +13,12 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Temporary CORS configuration for testing
+// CORS configuration
 app.use(cors({
-  origin: '*',
+  origin: ['https://whiskers-wonderland.vercel.app', 'http://localhost:3000'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 }));
 
 app.use(express.json());
@@ -26,10 +29,15 @@ app.use((req, res, next) => {
   next();
 });
 
-// API Routes
+// Public routes
 app.use('/api/auth', authRoutes);
-app.use('/animals', AnimalRouter);
-app.use('/shelters', ShelterRouter);
+
+// Protected routes
+app.use('/api/animals', authenticateToken, AnimalRouter);
+app.use('/api/shelters', authenticateToken, ShelterRouter);
+
+// Admin routes
+app.use('/api/admin', adminRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => res.status(200).json({ status: 'ok' }));

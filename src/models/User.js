@@ -31,6 +31,18 @@ const User = sequelize.define('User', {
   isMonitored: {
     type: DataTypes.BOOLEAN,
     defaultValue: false
+  },
+  twoFactorSecret: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
+  twoFactorEnabled: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
+  },
+  twoFactorVerified: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
   }
 }, {
   timestamps: true

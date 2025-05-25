@@ -19,14 +19,17 @@
     "faker": "^6.6.6",
     "jsonwebtoken": "^9.0.2",
     "jwt-decode": "^4.0.0",
+    "nodemailer": "^7.0.3",
     "pg": "^8.15.6",
     "pg-hstore": "^2.3.4",
+    "qrcode": "^1.5.4",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-router-dom": "^7.3.0",
     "react-scripts": "5.0.1",
     "recharts": "^2.15.1",
     "sequelize": "^6.37.7",
+    "speakeasy": "^2.0.0",
     "web-vitals": "^2.1.4"
   },
   "scripts": {

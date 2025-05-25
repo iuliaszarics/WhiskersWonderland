@@ -8,6 +8,7 @@ import AddAnimal from "./pages/AddAnimal.js";
 import Statistics from "./pages/Statistics.js";
 import Login from "./pages/Login.js";
 import Register from "./pages/Register.js";
+import TwoFactorSetup from "./pages/TwoFactorSetup.js";
 import axios from "axios";
 import Shelters from "./pages/Shelters.js";
 import { jwtDecode } from 'jwt-decode'; 
@@ -129,6 +130,11 @@ function App() {
             <Statistics user={user} />
           </LayoutWrapper>
         } />
+        <Route path="/2fa-setup" element={
+          <LayoutWrapper>
+            <TwoFactorSetup />
+          </LayoutWrapper>
+        } />
       </Routes>
     </Router>
   );
@@ -165,6 +171,7 @@ function NavSidebar({ handleLogout, user, searchTerm, setSearchTerm }) {
       <Link to="/add" className="bg-gray-500 text-white text-center p-2 rounded w-full">Put Animal for Adoption</Link>
       <Link to="/contact" className="bg-gray-500 text-black text-center p-2 rounded w-full">Contact</Link>
       <Link to="/statistics" className="bg-gray-500 text-black text-center p-2 rounded w-full">Statistics</Link>
+      <Link to="/2fa-setup" className="bg-gray-500 text-black text-center p-2 rounded w-full">Two-Factor Auth</Link>
       
       <button 
         onClick={handleLogout}
