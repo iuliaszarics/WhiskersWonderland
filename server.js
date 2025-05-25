@@ -91,7 +91,8 @@ app.use((err, req, res, next) => {
 });
 
 // Start server
-sequelize.sync().then(() => {
+sequelize.sync({ force: false }).then(() => {
+  console.log('Database tables have been synchronized');
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
     console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
@@ -102,4 +103,8 @@ sequelize.sync().then(() => {
     console.log(`- GET /api/shelters`);
     console.log(`- POST /api/auth/register`);
   });
+}).catch(error => {
+  console.error('Unable to sync database:', error);
+  console.error('Error details:', error.message);
+  console.error('Error stack:', error.stack);
 }); 

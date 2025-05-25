@@ -11,27 +11,57 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 router.post('/register', async (req, res) => {
   try {
+    console.log('Registration attempt with data:', { ...req.body, password: '[REDACTED]' });
+    
     const { username, email, password } = req.body;
     
+    // Validate required fields
+    if (!username || !email || !password) {
+      console.log('Missing required fields');
+      return res.status(400).json({ 
+        error: 'Missing required fields',
+        details: {
+          username: !username ? 'Username is required' : null,
+          email: !email ? 'Email is required' : null,
+          password: !password ? 'Password is required' : null
+        }
+      });
+    }
+
+    // Check for existing user
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
+      console.log('Email already in use:', email);
       return res.status(400).json({ error: 'Email already in use' });
     }
 
+    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
+    
+    // Create user
+    console.log('Creating new user...');
     const user = await User.create({
       username,
       email,
       password: hashedPassword,
       role: 'user' 
     });
-    await ActivityLog.create({
-      userId: user.id,
-      action: 'register',
-      entityType: 'user',
-      entityId: user.id,
-      details: 'New user registered'
-    });
+    console.log('User created successfully:', { id: user.id, username: user.username, email: user.email });
+
+    // Create activity log
+    try {
+      await ActivityLog.create({
+        userId: user.id,
+        action: 'register',
+        entityType: 'user',
+        entityId: user.id,
+        details: 'New user registered'
+      });
+      console.log('Activity log created successfully');
+    } catch (logError) {
+      console.error('Error creating activity log:', logError);
+      // Don't fail registration if activity log fails
+    }
 
     // Generate token
     const token = jwt.sign(
@@ -39,10 +69,17 @@ router.post('/register', async (req, res) => {
       JWT_SECRET,
       { expiresIn: '1h' }
     );
+    console.log('Token generated successfully');
 
     res.status(201).json({ token });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Registration error:', error);
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ 
+      error: 'Registration failed',
+      message: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 
