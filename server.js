@@ -92,9 +92,9 @@ app.use((err, req, res, next) => {
 
 // Start server
 console.log('Starting database sync...');
-sequelize.sync({ force: true })
+sequelize.sync({ force: false })
   .then(() => {
-    console.log('Database tables have been recreated successfully');
+    console.log('Database tables have been synchronized successfully');
     console.log('Checking table existence...');
     return sequelize.query('SELECT table_name FROM information_schema.tables WHERE table_schema = \'public\';');
   })

@@ -187,52 +187,42 @@ router.post('/verify-2fa', authenticateToken, async (req, res) => {
   try {
     console.log('2FA verification attempt:', {
       userId: req.user.id,
-      token: req.body.token
+      code: req.body.code
     });
 
     const userId = req.user.id;
-    const { token } = req.body;
+    const { code } = req.body;
 
-    if (!token) {
-      console.log('No token provided');
-      return res.status(400).json({ error: 'Token is required' });
+    if (!code) {
+      console.log('No verification code provided');
+      return res.status(400).json({ error: 'Verification code is required' });
     }
 
     const user = await User.findByPk(userId);
-    console.log('Found user:', { id: user.id, username: user.username });
-
     if (!user) {
-      console.log('User not found');
+      console.log('User not found:', userId);
       return res.status(404).json({ error: 'User not found' });
     }
 
     if (!user.twoFactorSecret) {
-      console.log('No 2FA secret found for user');
-      return res.status(400).json({ error: '2FA not set up' });
+      console.log('No 2FA secret found for user:', userId);
+      return res.status(400).json({ error: '2FA setup not initiated' });
     }
 
-    console.log('Verifying token against secret');
-    const isValid = verifyToken(user.twoFactorSecret, token);
-    console.log('Token verification result:', isValid);
-
+    const isValid = verifyToken(user.twoFactorSecret, code);
     if (!isValid) {
-      console.log('Invalid token provided');
-      return res.status(400).json({ error: 'Invalid token' });
+      console.log('Invalid verification code for user:', userId);
+      return res.status(400).json({ error: 'Invalid verification code' });
     }
 
-    console.log('Enabling 2FA for user');
+    // Enable 2FA for the user
     user.twoFactorEnabled = true;
-    user.twoFactorVerified = true;
     await user.save();
-    console.log('2FA enabled successfully');
 
-    res.json({ 
-      message: '2FA enabled successfully',
-      enabled: true
-    });
+    console.log('2FA enabled successfully for user:', userId);
+    res.json({ success: true, message: '2FA has been enabled successfully' });
   } catch (error) {
     console.error('2FA verification error:', error);
-    console.error('Error stack:', error.stack);
     res.status(500).json({ 
       error: 'Failed to verify 2FA',
       message: error.message,

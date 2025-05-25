@@ -54,15 +54,31 @@ function TwoFactorSetup() {
 
   const verifyAndEnable2FA = async () => {
     try {
-      const response = await api.post('/auth/verify-2fa', { token: verificationCode });
+      setIsLoading(true);
+      setError('');
+      console.log('Verifying 2FA code:', verificationCode);
+      
+      const response = await api.post('/auth/verify-2fa', { 
+        code: verificationCode 
+      });
+      
+      console.log('Verification response:', response.data);
+      
       if (response.data.success) {
         setIsEnabled(true);
         setShowVerification(false);
         setVerificationCode('');
-        setError('');
+        setSuccess('2FA has been successfully enabled!');
       }
     } catch (error) {
+      console.error('Verification error:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message
+      });
       setError(error.response?.data?.message || 'Failed to verify 2FA code. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
