@@ -1,8 +1,10 @@
 import express from 'express';
 import { Animal, Shelter } from '../models/index.js';
+import { authenticateToken } from '../middleware/auth.js';
 
 const AnimalRouter = express.Router();
 
+// Public routes
 AnimalRouter.get('/', async (req, res) => {
   try {
     const where = {};
@@ -22,7 +24,8 @@ AnimalRouter.get('/', async (req, res) => {
   }
 });
 
-AnimalRouter.post('/', async (req, res) => {
+// Protected routes
+AnimalRouter.post('/', authenticateToken, async (req, res) => {
   try {
     const animal = await Animal.create(req.body);
     const animalWithShelter = await Animal.findByPk(animal.id, { include: Shelter });
@@ -32,8 +35,7 @@ AnimalRouter.post('/', async (req, res) => {
   }
 });
 
-
-AnimalRouter.patch('/:id', async (req, res) => {
+AnimalRouter.patch('/:id', authenticateToken, async (req, res) => {
   try {
     const animal = await Animal.findByPk(req.params.id);
     if (!animal) return res.status(404).json({ error: 'Animal not found' });
@@ -46,8 +48,7 @@ AnimalRouter.patch('/:id', async (req, res) => {
   }
 });
 
-
-AnimalRouter.delete('/:id', async (req, res) => {
+AnimalRouter.delete('/:id', authenticateToken, async (req, res) => {
   try {
     const animal = await Animal.findByPk(req.params.id);
     if (!animal) return res.status(404).json({ error: 'Animal not found' });

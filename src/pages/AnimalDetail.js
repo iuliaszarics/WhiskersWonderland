@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api/config.js";
 
 function AnimalDetail({ animals, setAnimals }) {
   const { id } = useParams();
@@ -9,6 +9,7 @@ function AnimalDetail({ animals, setAnimals }) {
   const [animal, setAnimal] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [updatedAnimal, setUpdatedAnimal] = useState(null);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (animals.length > 0) {
@@ -30,22 +31,32 @@ function AnimalDetail({ animals, setAnimals }) {
 
   const handleUpdate = async () => {
     try {
-      const response = await axios.patch(`http://localhost:5000/animals/${id}`, updatedAnimal);
+      setError('');
+      console.log('Updating animal:', updatedAnimal);
+      const response = await api.patch(`/animals/${id}`, updatedAnimal);
+      console.log('Update response:', response.data);
+      
       setAnimals((prev) => prev.map(a => (a.id === parseInt(id) ? response.data : a)));
       setAnimal(response.data);
       setIsEditing(false);
     } catch (error) {
       console.error("Error updating animal:", error);
+      setError(error.response?.data?.error || 'Failed to update animal');
     }
   };
 
   const handleAdopt = async () => {
     try {
-      await axios.delete(`http://localhost:5000/animals/${id}`);
+      setError('');
+      console.log('Deleting animal:', id);
+      await api.delete(`/animals/${id}`);
+      console.log('Animal deleted successfully');
+      
       setAnimals((prev) => prev.filter(a => a.id !== parseInt(id)));
       navigate("/"); 
     } catch (error) {
       console.error("Error deleting animal:", error);
+      setError(error.response?.data?.error || 'Failed to delete animal');
     }
   };
 
@@ -58,6 +69,12 @@ function AnimalDetail({ animals, setAnimals }) {
       <p>Breed: {animal.breed}</p>
       <p>Color: {animal.color}</p>
       <p>Description: {animal.description}</p>
+
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mt-4">
+          {error}
+        </div>
+      )}
 
       {isEditing ? (
         <div className="mt-4">
