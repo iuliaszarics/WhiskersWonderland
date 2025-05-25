@@ -185,27 +185,59 @@ router.post('/setup-2fa', authenticateToken, async (req, res) => {
 // Verify and enable 2FA
 router.post('/verify-2fa', authenticateToken, async (req, res) => {
   try {
+    console.log('2FA verification attempt:', {
+      userId: req.user.id,
+      token: req.body.token
+    });
+
     const userId = req.user.id;
     const { token } = req.body;
-    const user = await User.findByPk(userId);
 
-    if (!user || !user.twoFactorSecret) {
+    if (!token) {
+      console.log('No token provided');
+      return res.status(400).json({ error: 'Token is required' });
+    }
+
+    const user = await User.findByPk(userId);
+    console.log('Found user:', { id: user.id, username: user.username });
+
+    if (!user) {
+      console.log('User not found');
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    if (!user.twoFactorSecret) {
+      console.log('No 2FA secret found for user');
       return res.status(400).json({ error: '2FA not set up' });
     }
 
+    console.log('Verifying token against secret');
     const isValid = verifyToken(user.twoFactorSecret, token);
+    console.log('Token verification result:', isValid);
+
     if (!isValid) {
+      console.log('Invalid token provided');
       return res.status(400).json({ error: 'Invalid token' });
     }
 
+    console.log('Enabling 2FA for user');
     user.twoFactorEnabled = true;
     user.twoFactorVerified = true;
     await user.save();
+    console.log('2FA enabled successfully');
 
-    res.json({ message: '2FA enabled successfully' });
+    res.json({ 
+      message: '2FA enabled successfully',
+      enabled: true
+    });
   } catch (error) {
     console.error('2FA verification error:', error);
-    res.status(500).json({ error: error.message });
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ 
+      error: 'Failed to verify 2FA',
+      message: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 
