@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import api from '../api/config.js';
 
 function Login({ onLogin }) {
   const [formData, setFormData] = useState({
@@ -12,19 +13,13 @@ function Login({ onLogin }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
+      const response = await api.post('/api/auth/login', formData);
       
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.error || 'Login failed');
+      if (!response.data) {
+        throw new Error('Login failed');
       }
       
-      onLogin(data.token);
+      onLogin(response.data.token);
       navigate('/');
     } catch (err) {
       setError(err.message);
