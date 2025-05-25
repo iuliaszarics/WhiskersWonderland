@@ -28,25 +28,51 @@ router.post('/register', async (req, res) => {
       });
     }
 
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: 'Invalid email format' });
+    }
+
     // Check for existing user
-    const existingUser = await User.findOne({ where: { email } });
-    if (existingUser) {
-      console.log('Email already in use:', email);
-      return res.status(400).json({ error: 'Email already in use' });
+    try {
+      const existingUser = await User.findOne({ where: { email } });
+      if (existingUser) {
+        console.log('Email already in use:', email);
+        return res.status(400).json({ error: 'Email already in use' });
+      }
+    } catch (dbError) {
+      console.error('Database error checking existing user:', dbError);
+      return res.status(500).json({ error: 'Database error checking existing user' });
     }
 
     // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    let hashedPassword;
+    try {
+      hashedPassword = await bcrypt.hash(password, 10);
+    } catch (hashError) {
+      console.error('Error hashing password:', hashError);
+      return res.status(500).json({ error: 'Error processing password' });
+    }
     
     // Create user
     console.log('Creating new user...');
-    const user = await User.create({
-      username,
-      email,
-      password: hashedPassword,
-      role: 'user' 
-    });
-    console.log('User created successfully:', { id: user.id, username: user.username, email: user.email });
+    let user;
+    try {
+      user = await User.create({
+        username,
+        email,
+        password: hashedPassword,
+        role: 'user' 
+      });
+      console.log('User created successfully:', { id: user.id, username: user.username, email: user.email });
+    } catch (createError) {
+      console.error('Error creating user:', createError);
+      if (createError.name === 'SequelizeUniqueConstraintError') {
+        return res.status(400).json({ error: 'Username or email already exists' });
+      }
+      return res.status(500).json({ error: 'Error creating user account' });
+    }
 
     // Create activity log
     try {
@@ -64,12 +90,18 @@ router.post('/register', async (req, res) => {
     }
 
     // Generate token
-    const token = jwt.sign(
-      { id: user.id, username: user.username, role: user.role },
-      JWT_SECRET,
-      { expiresIn: '1h' }
-    );
-    console.log('Token generated successfully');
+    let token;
+    try {
+      token = jwt.sign(
+        { id: user.id, username: user.username, role: user.role },
+        JWT_SECRET,
+        { expiresIn: '1h' }
+      );
+      console.log('Token generated successfully');
+    } catch (tokenError) {
+      console.error('Error generating token:', tokenError);
+      return res.status(500).json({ error: 'Error generating authentication token' });
+    }
 
     res.status(201).json({ token });
   } catch (error) {
