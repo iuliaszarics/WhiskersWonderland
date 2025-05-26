@@ -15,7 +15,6 @@ router.post('/register', async (req, res) => {
     
     const { username, email, password } = req.body;
     
-    // Validate required fields
     if (!username || !email || !password) {
       console.log('Missing required fields');
       return res.status(400).json({ 
@@ -28,13 +27,12 @@ router.post('/register', async (req, res) => {
       });
     }
 
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return res.status(400).json({ error: 'Invalid email format' });
     }
 
-    // Check for existing user
+
     try {
       const existingUser = await User.findOne({ where: { email } });
       if (existingUser) {
@@ -46,7 +44,6 @@ router.post('/register', async (req, res) => {
       return res.status(500).json({ error: 'Database error checking existing user' });
     }
 
-    // Hash password
     let hashedPassword;
     try {
       hashedPassword = await bcrypt.hash(password, 10);
@@ -55,7 +52,6 @@ router.post('/register', async (req, res) => {
       return res.status(500).json({ error: 'Error processing password' });
     }
     
-    // Create user
     console.log('Creating new user...');
     let user;
     try {
@@ -74,7 +70,6 @@ router.post('/register', async (req, res) => {
       return res.status(500).json({ error: 'Error creating user account' });
     }
 
-    // Create activity log
     try {
       await ActivityLog.create({
         userId: user.id,
@@ -89,7 +84,6 @@ router.post('/register', async (req, res) => {
       // Don't fail registration if activity log fails
     }
 
-    // Generate token
     let token;
     try {
       token = jwt.sign(
@@ -124,7 +118,6 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    // If 2FA is enabled, require verification
     if (user.twoFactorEnabled) {
       const tempToken = jwt.sign(
         { id: user.id, temp: true },
@@ -137,7 +130,6 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // If 2FA is not enabled, proceed with normal login
     await ActivityLog.create({
       userId: user.id,
       action: 'login',
@@ -158,7 +150,6 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Setup 2FA
 router.post('/setup-2fa', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
@@ -171,7 +162,6 @@ router.post('/setup-2fa', authenticateToken, async (req, res) => {
     const secret = generateSecret();
     const qrCode = await generateQRCode(secret);
 
-    // Save the secret temporarily
     user.twoFactorSecret = secret.base32;
     await user.save();
 
@@ -182,7 +172,7 @@ router.post('/setup-2fa', authenticateToken, async (req, res) => {
   }
 });
 
-// Verify and enable 2FA
+
 router.post('/verify-2fa', authenticateToken, async (req, res) => {
   try {
     console.log('2FA verification attempt:', {
@@ -215,7 +205,6 @@ router.post('/verify-2fa', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'Invalid verification code' });
     }
 
-    // Enable 2FA for the user
     user.twoFactorEnabled = true;
     await user.save();
 
@@ -231,12 +220,10 @@ router.post('/verify-2fa', authenticateToken, async (req, res) => {
   }
 });
 
-// Verify 2FA token during login
 router.post('/verify-2fa-login', async (req, res) => {
   try {
     const { tempToken, token } = req.body;
     
-    // Verify the temporary token
     const decoded = jwt.verify(tempToken, JWT_SECRET);
     if (!decoded.temp) {
       return res.status(400).json({ error: 'Invalid temporary token' });
@@ -272,7 +259,6 @@ router.post('/verify-2fa-login', async (req, res) => {
   }
 });
 
-// Get 2FA status
 router.get('/2fa-status', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
@@ -289,7 +275,6 @@ router.get('/2fa-status', authenticateToken, async (req, res) => {
   }
 });
 
-// Disable 2FA
 router.post('/disable-2fa', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;

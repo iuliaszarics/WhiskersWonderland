@@ -141,6 +141,11 @@ function App() {
 }
 
 function NavSidebar({ handleLogout, user, searchTerm, setSearchTerm }) {
+  const handleSearchChange = (e) => {
+    console.log('Search input changed:', e.target.value);
+    setSearchTerm(e.target.value);
+  };
+
   return (
     <nav className="w-1/4 p-4 bg-gray-100 h-screen flex flex-col justify-center items-center space-y-4 fixed left-0 top-0">
       <div className="text-center mb-4">
@@ -153,7 +158,7 @@ function NavSidebar({ handleLogout, user, searchTerm, setSearchTerm }) {
         placeholder="Search animals..."
         className="p-2 rounded border mb-4 w-full"
         value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
+        onChange={handleSearchChange}
       />
       
       <Link to="/" className="bg-gray-500 text-black text-center p-2 rounded w-full">Home</Link>

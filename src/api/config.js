@@ -11,7 +11,6 @@ const api = axios.create({
   },
 });
 
-// Add a request interceptor to include the auth token
 api.interceptors.request.use(
   (config) => {
     console.log('Making request to:', `${API_URL}${config.url}`);
@@ -23,7 +22,6 @@ api.interceptors.request.use(
       console.log('Authorization header set:', config.headers.Authorization);
     }
 
-    // Ensure the URL starts with /api
     if (!config.url.startsWith('/api/')) {
       config.url = `/api${config.url}`;
     }
@@ -36,7 +34,6 @@ api.interceptors.request.use(
   }
 );
 
-// Add a response interceptor for debugging
 api.interceptors.response.use(
   (response) => {
     console.log('Response received:', {

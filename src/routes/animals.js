@@ -4,7 +4,7 @@ import { authenticateToken } from '../middleware/auth.js';
 
 const AnimalRouter = express.Router();
 
-// Public routes
+
 AnimalRouter.get('/', async (req, res) => {
   try {
     const where = {};
@@ -24,7 +24,7 @@ AnimalRouter.get('/', async (req, res) => {
   }
 });
 
-// Protected routes
+
 AnimalRouter.post('/', authenticateToken, async (req, res) => {
   try {
     const animal = await Animal.create(req.body);
